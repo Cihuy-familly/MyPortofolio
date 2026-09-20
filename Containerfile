@@ -12,7 +12,7 @@ COPY package.json package-lock.json ./
 COPY app ./app
 COPY components ./components
 COPY lib ./lib
-COPY Public ./public
+COPY public ./public
 COPY jsconfig.json next.config.mjs ./
 RUN npm run build
 

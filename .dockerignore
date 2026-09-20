@@ -1,6 +1,8 @@
 .git
 .next
 .pdf_tools
+AGENTS.md
+DESIGN.md
 node_modules
 npm-debug.log*
 Dockerfile*

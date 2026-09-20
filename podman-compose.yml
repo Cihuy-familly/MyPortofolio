@@ -1,8 +1,7 @@
 services:
   portfolio:
-    build:
-      context: .
-      dockerfile: Containerfile
+    image: ${PORTFOLIO_IMAGE:-registry.cihuyproject.my.id/cihuy-familly/myportfolio:latest}
+    pull_policy: always
     container_name: dawwi-portfolio
     ports:
       - "3013:3013"
@@ -10,6 +9,6 @@ services:
       NODE_ENV: production
       PORT: 3013
       HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_SITE_URL: http://localhost:3013
+      NEXT_PUBLIC_SITE_URL: https://myporto.cihuy-familly.my.id
       NEXT_PUBLIC_STRAPI_URL: https://strapi.cihuy-familly.my.id
     restart: unless-stopped

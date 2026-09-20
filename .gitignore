@@ -10,6 +10,8 @@
 
 # local tooling
 /.pdf_tools
+/AGENTS.md
+/DESIGN.md
 
 # environment files
 .env

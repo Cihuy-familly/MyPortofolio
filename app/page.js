@@ -1,79 +1,93 @@
 import Image from "next/image";
 import ThemeToggle from "@/components/theme-toggle";
-import TypingName from "@/components/typing-name";
+import { sortExperiences, summarize } from "@/lib/portfolio.mjs";
 import { getPortfolioData, splitTags } from "@/lib/strapi";
 
-function ProjectLinks({ repoUrl, liveUrl, status }) {
+export const dynamic = "force-dynamic";
+
+const FEATURED_PROJECTS = [
+  "Linker URL Shortener | Full DevOps Pipeline",
+  "School Management System (Starkidy LMS)",
+  "SolarIntelligence || Dicoding Capstone"
+];
+
+function ProjectLinks({ repoUrl, liveUrl }) {
+  if (!repoUrl && !liveUrl) {
+    return null;
+  }
+
   return (
     <div className="project-links">
       {liveUrl ? (
         <a href={liveUrl} target="_blank" rel="noreferrer">
-          Open live site
+          View live project <span aria-hidden="true">↗</span>
         </a>
-      ) : (
-        <span className="soft-chip">
-          {status === "private" ? "Private deployment" : "No live URL"}
-        </span>
-      )}
+      ) : null}
       {repoUrl ? (
         <a href={repoUrl} target="_blank" rel="noreferrer">
-          Source code
+          View source <span aria-hidden="true">↗</span>
         </a>
-      ) : (
-        <span className="soft-chip">
-          {status === "private" ? "Private repository" : "Repo unavailable"}
-        </span>
-      )}
+      ) : null}
     </div>
   );
 }
 
-function ExperienceCard({ experience }) {
+function ProjectPreview({ project }) {
+  const tags = splitTags(project.tags).slice(0, 4);
+
   return (
-    <article className="experience-card">
-      <div className="experience-topline">
-        <span>{experience.period}</span>
-        <span>{experience.location}</span>
+    <div className="project-preview" role="img" aria-label={`System view for ${project.title}`}>
+      <div className="preview-toolbar" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <p>System view</p>
       </div>
-      <h3>{experience.role}</h3>
-      <p className="experience-company">{experience.company}</p>
-      <p>{experience.summary}</p>
-    </article>
+      <div className="preview-flow">
+        {tags.map((tag, index) => (
+          <div className="flow-step" key={tag}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{tag}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
-function PublicProjectCard({ project, index }) {
+function FeaturedProject({ project, index }) {
   const tags = splitTags(project.tags).slice(0, 6);
-  const status = String(project.Statuss || "private").toLowerCase();
 
   return (
-    <article className="showcase-card">
-      <div className="showcase-number">0{index + 1}</div>
-      <div className="showcase-content">
-        <div className="showcase-header">
-          <span className={`status-pill ${status}`}>{status}</span>
-          <h3>{project.title}</h3>
-        </div>
-        <p>{project.description}</p>
-        <div className="tag-row">
+    <article className={`featured-project ${index === 0 ? "featured-project-primary" : ""}`}>
+      <ProjectPreview project={project} />
+      <div className="project-copy">
+        <div className="project-index">Selected work / {String(index + 1).padStart(2, "0")}</div>
+        <h3>{project.title}</h3>
+        <p>{summarize(project.description)}</p>
+        <div className="tag-row" aria-label="Technologies used">
           {tags.map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
         </div>
-        <ProjectLinks repoUrl={project.repo_url} liveUrl={project.live_url} status={status} />
+        <ProjectLinks repoUrl={project.repo_url} liveUrl={project.live_url} />
       </div>
     </article>
   );
 }
 
-function PrivateProjectCard({ project }) {
+function ExperienceEntry({ experience }) {
   return (
-    <article className="lab-card">
-      <div className="lab-head">
-        <h4>{project.title}</h4>
-        <span>Private</span>
+    <article className="experience-entry">
+      <div className="experience-period">
+        <span>{experience.period}</span>
+        <span>{experience.location}</span>
       </div>
-      <p>{project.description}</p>
+      <div className="experience-copy">
+        <h3>{experience.role}</h3>
+        <p className="experience-company">{experience.company}</p>
+        <p>{summarize(experience.summary, 420)}</p>
+      </div>
     </article>
   );
 }
@@ -86,252 +100,250 @@ export default async function HomePage() {
   const privateProjects = projects.filter(
     (project) => String(project.Statuss || "").toLowerCase() !== "public"
   );
+  const featuredProjects = FEATURED_PROJECTS.map((title) =>
+    publicProjects.find((project) => project.title === title)
+  ).filter(Boolean);
+  const remainingProjects = publicProjects.filter(
+    (project) => !featuredProjects.some((featured) => featured.id === project.id)
+  );
+  const orderedPublicProjects = [...featuredProjects, ...remainingProjects];
+  const orderedExperiences = sortExperiences(experiences);
 
   return (
-    <main className="page-shell">
-      <header className="masthead">
-        <div className="brand-mark">Dawwi</div>
-        <nav className="masthead-nav">
-          <a href="#about">About</a>
-          <a href="#projects">Projects</a>
-          <a href="#experience">Experience</a>
-        </nav>
-        <ThemeToggle />
+    <>
+      <div className="ambient-background" aria-hidden="true" />
+      <header className="site-header" id="top">
+        <div className="header-inner">
+          <a className="brand-mark" href="#top" aria-label="Dawwi, back to top">
+            Dawwi<span>.</span>
+          </a>
+          <nav className="site-nav" aria-label="Primary navigation">
+            <a href="#work">Work</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
-      <section className="hero-stage">
-        <div className="hero-grid">
-          <div className="intro-panel">
-            <span className="section-kicker">My Portfolio</span>
-            <p className="mini-note">Based in Indonesia.</p>
-            <h1 className="typing-title">
-              <TypingName />
-            </h1>
-            <p className="intro-text">
-              Computer Science graduate with interests in infrastructure, cloud technologies, and intelligent systems. Passionate about building reliable solutions through digitalization and automation, systems thinking, and practical engineering.
+      <main>
+        <section className="hero section-shell" aria-labelledby="hero-title">
+          <div className="hero-copy">
+            <p className="eyebrow">Dawwi R.D.M. · DevOps &amp; Cloud Engineer</p>
+            <h1 id="hero-title">I build reliable cloud systems and practical software.</h1>
+            <p className="hero-intro">
+              I work across cloud infrastructure, automation, and application delivery to turn
+              complex systems into dependable tools people can use.
             </p>
-
             <div className="cta-row">
-              <a href="#projects" className="primary-cta">
-                Explore projects
+              <a className="button button-primary" href="#work">
+                View my work
               </a>
-              <a href="#experience" className="ghost-cta">
-                View experience
+              <a className="button button-secondary" href="mailto:dawwi.rdm@gmail.com">
+                Contact me
               </a>
-            </div>
-
-            <div className="stat-ribbon">
-              <div>
-                <span>Total projects</span>
-                <strong>{projects.length}</strong>
-              </div>
-              <div>
-                <span>Public releases</span>
-                <strong>{publicProjects.length}</strong>
-              </div>
-              <div>
-                <span>Work entries</span>
-                <strong>{experiences.length}</strong>
-              </div>
-              <div>
-                <span>Stack focus</span>
-                <strong>Cloud Tech</strong>
-              </div>
             </div>
           </div>
+          <div className="hero-visual">
+            <div className="hero-portrait">
+              <Image
+                src="/DSC09803.jpg"
+                alt="Dawwi smiling in a black suit"
+                fill
+                className="hero-portrait-image"
+                sizes="(max-width: 900px) 360px, 34vw"
+                priority
+              />
+            </div>
+            <div className="hero-aside" aria-label="Professional focus">
+              <span>Based in Bandung, Indonesia</span>
+              <p>Infrastructure · DevOps · Intelligent systems</p>
+            </div>
+          </div>
+        </section>
 
-          <aside className="about-panel" id="about">
-            <div className="about-visual">
-              <div className="portrait-glow" />
-              <div className="portrait-frame">
+        <section className="about-band section-block" id="about" aria-labelledby="about-title">
+          <div className="section-shell about-section">
+            <div className="about-collage" aria-label="Portraits of Dawwi">
+              <div className="collage-photo collage-photo-main">
                 <Image
                   src="/DSC09788.jpg"
-                  alt="Portrait of Dawwi in a black suit"
+                  alt="Dawwi smiling in a black suit"
                   fill
-                  className="portrait-image"
-                  sizes="(max-width: 1080px) 100vw, 420px"
-                  priority
+                  className="collage-image"
+                  sizes="(max-width: 760px) 68vw, 330px"
                 />
               </div>
-
-              <div className="floating-shot scenic-shot">
+              <div className="collage-photo collage-photo-scenic">
                 <Image
                   src="/DSC03688_1_1.JPG"
-                  alt="Dawwi at a mountain landscape"
+                  alt="Dawwi standing in front of a mountain landscape"
                   fill
-                  className="floating-image"
-                  sizes="220px"
+                  className="collage-image"
+                  sizes="(max-width: 760px) 34vw, 180px"
                 />
               </div>
-
-              <div className="floating-shot casual-shot">
+              <div className="collage-photo collage-photo-casual">
                 <Image
                   src="/DSC02120.jpg"
-                  alt="Casual portrait of Dawwi"
+                  alt="Dawwi in casual clothing"
                   fill
-                  className="floating-image"
-                  sizes="180px"
+                  className="collage-image"
+                  sizes="(max-width: 760px) 30vw, 150px"
                 />
               </div>
             </div>
-
             <div className="about-copy">
-              <span className="section-kicker muted-dark">About Me</span>
-              <h2>Who is Dawwi?</h2>
+              <p className="eyebrow">About</p>
+              <h2 id="about-title">Engineering with the whole system in mind.</h2>
               <p>
-                A Digital Oriented technology professional with hands-on experience in infrastructure operations, cloud technologies, automation, and AI/ML solutions. Skilled in Linux systems, networking, troubleshooting, and deploying scalable services, while also exploring intelligent systems through machine learning and data-driven projects. Passionate about building reliable, efficient, and innovative technology solutions across infrastructure and modern computing environments.
+                I am a Computer Science graduate and technology professional with hands-on
+                experience in Linux infrastructure, cloud platforms, automation, software delivery,
+                and AI/ML projects. I enjoy connecting these disciplines to build systems that are
+                maintainable, observable, and useful.
               </p>
-
-              <div className="about-chips">
-                <span>Agile workflow</span>
-                <span>Team leadership</span>
-                <span>System Administrator</span>
-                <span>Cloud Tech</span>
-                <span>DevOps</span>
-                <span>AI engineer</span>
-                <span>Self-hosted env</span>
+              <div className="capabilities" aria-label="Core capabilities">
+                <div>
+                  <span>01</span>
+                  <strong>Cloud infrastructure</strong>
+                  <p>AWS, Linux, networking, storage, and self-hosted environments.</p>
+                </div>
+                <div>
+                  <span>02</span>
+                  <strong>DevOps &amp; delivery</strong>
+                  <p>Docker, Kubernetes, Terraform, CI/CD, and observability.</p>
+                </div>
+                <div>
+                  <span>03</span>
+                  <strong>Software &amp; AI</strong>
+                  <p>Full-stack applications, APIs, machine learning, and data workflows.</p>
+                </div>
               </div>
             </div>
-          </aside>
-        </div>
-      </section>
-
-      <section className="content-section" id="experience">
-        <div className="section-heading">
-          <span className="section-kicker">Experience</span>
-          <h2>My Previous Working Experience</h2>
-        </div>
-
-        <div className="experience-grid">
-          {sourceState.experiences.status === "rejected" ? (
-            <article className="experience-card empty-state">
-              <h3>Experience feed unavailable</h3>
-              <p>
-                Website ini gagal mengambil data experience dari Strapi. Cek koneksi server
-                deployment ke host Strapi.
-              </p>
-            </article>
-          ) : experiences.length > 0 ? (
-            experiences.map((experience) => (
-              <ExperienceCard key={experience.documentId || experience.id} experience={experience} />
-            ))
-          ) : (
-            <article className="experience-card empty-state">
-              <h3>No published experience yet</h3>
-              <p>Collection `work-experiences-Dawwi` belum memiliki entry publik.</p>
-            </article>
-          )}
-        </div>
-      </section>
-
-      <section className="content-section" id="projects">
-        <div className="section-heading">
-          <span className="section-kicker">Projects</span>
-          <h2>Public and Private Projects.</h2>
-        </div>
-
-        <div className="projects-layout">
-          <div className="showcase-list">
-            {sourceState.projects.status === "rejected" ? (
-              <article className="showcase-card empty-state">
-                <div className="showcase-number">!!</div>
-                <div className="showcase-content">
-                  <h3>Project feed unavailable</h3>
-                  <p>
-                    Strapi live punya data project, tapi instance website ini gagal mengambilnya.
-                    Biasanya ini karena deployment lama, env host salah, atau server tidak bisa
-                    reach Strapi.
-                  </p>
-                </div>
-              </article>
-            ) : publicProjects.length > 0 ? (
-              publicProjects.map((project, index) => (
-                <PublicProjectCard
-                  key={project.documentId || project.id}
-                  project={project}
-                  index={index}
-                />
-              ))
-            ) : (
-              <article className="showcase-card empty-state">
-                <div className="showcase-number">00</div>
-                <div className="showcase-content">
-                  <h3>No public projects yet</h3>
-                  <p>Tambahkan project dengan status `public` di Strapi untuk mengisi area ini.</p>
-                </div>
-              </article>
-            )}
           </div>
+        </section>
 
-          <aside className="labs-panel">
-            <div className="labs-shell">
-              <span className="section-kicker muted">Private labs</span>
-              <h3>Internal experiments Project.</h3>
-              <div className="labs-list">
-                {sourceState.projects.status === "rejected" ? (
-                  <article className="lab-card">
-                    <h4>Project feed unavailable</h4>
-                    <p>Private entries juga tidak bisa dimuat karena fetch ke Strapi gagal.</p>
-                  </article>
-                ) : privateProjects.length > 0 ? (
-                  privateProjects.map((project) => (
-                    <PrivateProjectCard
+        <section className="work-section section-block" id="work" aria-labelledby="work-title">
+          <div className="section-shell work-layout">
+            <div className="work-intro">
+              <div className="section-heading">
+                <p className="eyebrow">Selected work</p>
+                <h2 id="work-title">Systems built for real use.</h2>
+                <p>
+                  Infrastructure, software, and machine-learning projects spanning implementation,
+                  delivery, and ongoing operation.
+                </p>
+              </div>
+              <span className="work-count">
+                {publicProjects.length} public · {privateProjects.length} private
+              </span>
+            </div>
+
+            <div className="work-feed">
+              {sourceState.projects.status === "rejected" ? (
+                <div className="notice" role="status">
+                  Project data is temporarily unavailable. Please use the GitHub link below to view
+                  current work.
+                </div>
+              ) : orderedPublicProjects.length > 0 ? (
+                <div className="featured-list">
+                  {orderedPublicProjects.map((project, index) => (
+                    <FeaturedProject
                       key={project.documentId || project.id}
                       project={project}
+                      index={index}
                     />
-                  ))
-                ) : (
-                  <article className="lab-card">
-                    <h4>No private entries</h4>
-                    <p>Semua project yang ada saat ini sudah tampil sebagai public release.</p>
-                  </article>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="notice">No public projects are available yet.</div>
+              )}
+
+              {privateProjects.length > 0 ? (
+                <div className="private-work">
+                  <div className="private-work-heading">
+                    <div>
+                      <span>Private work</span>
+                      <h3>Internal systems and experiments.</h3>
+                    </div>
+                    <p>These projects are not publicly accessible, but remain part of my practical work.</p>
+                  </div>
+                  <div className="private-work-list">
+                    {privateProjects.map((project) => {
+                      const tags = splitTags(project.tags).slice(0, 3);
+
+                      return (
+                        <article key={project.documentId || project.id}>
+                          <span className="private-index">Private</span>
+                          <div>
+                            <h4>{project.title}</h4>
+                            <p>{summarize(project.description, 220)}</p>
+                            {tags.length > 0 ? (
+                              <div className="private-tags" aria-label="Technologies used">
+                                {tags.map((tag) => (
+                                  <span key={tag}>{tag}</span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </aside>
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <footer className="site-footer">
-        <div className="footer-copy">
-          <span className="section-kicker">Contacts</span>
-          <h2>Designed and built by Dawwi.</h2>
-          <p>Bandung, Indonesia</p>
-        </div>
+        <section className="section-shell section-block" id="experience" aria-labelledby="experience-title">
+          <div className="section-heading section-heading-row">
+            <div>
+              <p className="eyebrow">Experience</p>
+              <h2 id="experience-title">Where I have contributed.</h2>
+            </div>
+            <p>Roles spanning infrastructure operations, software engineering, and technical leadership.</p>
+          </div>
 
-        <div className="footer-links">
-          <a href="mailto:dawwi.rdm@gmail.com" aria-label="Email Dawwi">
-            <Image
-              src="/google_mail_gmail_logo_icon_159346.webp"
-              alt=""
-              width={18}
-              height={18}
-              className="footer-icon"
-            />
-            <span>dawwi.rdm@gmail.com</span>
-          </a>
-          <a href="https://www.linkedin.com/in/dawwi-rdm/" target="_blank" rel="noreferrer">
-            <Image
-              src="/LinkedIn_icon.svg.webp"
-              alt=""
-              width={18}
-              height={18}
-              className="footer-icon"
-            />
-            <span>LinkedIn</span>
-          </a>
-          <a href="https://github.com/DrdmRandom" target="_blank" rel="noreferrer">
-            <Image
-              src="/25231.webp"
-              alt=""
-              width={18}
-              height={18}
-              className="footer-icon"
-            />
-            <span>GitHub</span>
-          </a>
+          {sourceState.experiences.status === "rejected" ? (
+            <div className="notice" role="status">Experience data is temporarily unavailable.</div>
+          ) : orderedExperiences.length > 0 ? (
+            <div className="experience-list">
+              {orderedExperiences.map((experience) => (
+                <ExperienceEntry
+                  key={experience.documentId || experience.id}
+                  experience={experience}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="notice">No experience entries are available yet.</div>
+          )}
+        </section>
+      </main>
+
+      <footer className="site-footer" id="contact">
+        <div className="section-shell footer-inner">
+          <div>
+            <p className="eyebrow">Contact</p>
+            <h2>Let’s build something dependable.</h2>
+            <p>For opportunities, collaborations, or a conversation about infrastructure and software.</p>
+          </div>
+          <div className="contact-links">
+            <a href="mailto:dawwi.rdm@gmail.com">Email <span>dawwi.rdm@gmail.com</span></a>
+            <a href="https://www.linkedin.com/in/dawwi-rdm/" target="_blank" rel="noreferrer">
+              LinkedIn <span aria-hidden="true">↗</span>
+            </a>
+            <a href="https://github.com/DrdmRandom" target="_blank" rel="noreferrer">
+              GitHub <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+        <div className="section-shell footer-bottom">
+          <span>© {new Date().getFullYear()} Dawwi R.D.M.</span>
+          <a href="#top">Back to top ↑</a>
         </div>
       </footer>
-    </main>
+    </>
   );
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 const STORAGE_KEY = "dawwi-portfolio-theme";
 
 function applyTheme(theme) {
@@ -9,18 +7,9 @@ function applyTheme(theme) {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState("light");
-
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem(STORAGE_KEY);
-    const initialTheme = savedTheme === "dark" ? "dark" : "light";
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
-  }, []);
-
   function toggleTheme() {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
     window.localStorage.setItem(STORAGE_KEY, nextTheme);
     applyTheme(nextTheme);
   }
@@ -30,9 +19,9 @@ export default function ThemeToggle() {
       type="button"
       className="theme-toggle"
       onClick={toggleTheme}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      aria-label="Toggle color theme"
     >
-      <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+      <span>Theme</span>
     </button>
   );
 }

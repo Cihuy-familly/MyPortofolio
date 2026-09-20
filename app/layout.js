@@ -2,7 +2,7 @@ import { Manrope, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://myporto.cihuy-familly.my.id";
 const plausibleDomain =
   process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "myporto.cihuy-familly.my.id";
 const plausibleHost =
@@ -20,18 +20,18 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Dawwi Portfolio",
+  title: "Dawwi R.D.M. | DevOps & Cloud Engineer",
   description:
-    "Minimal, modern, and elegant portfolio for Dawwi with real-time project and work experience data from Strapi.",
+    "Portfolio of Dawwi R.D.M., a DevOps and cloud engineer working across infrastructure, automation, software delivery, and intelligent systems.",
   icons: {
     icon: "/portfolio.png",
     shortcut: "/portfolio.png",
     apple: "/portfolio.png"
   },
   openGraph: {
-    title: "Dawwi Portfolio",
+    title: "Dawwi R.D.M. | DevOps & Cloud Engineer",
     description:
-      "Minimal, modern, and elegant portfolio for Dawwi with real-time project and work experience data from Strapi.",
+      "Cloud infrastructure, DevOps, software delivery, and intelligent systems built by Dawwi R.D.M.",
     images: [
       {
         url: "/portfolio.png",
@@ -43,16 +43,16 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dawwi Portfolio",
+    title: "Dawwi R.D.M. | DevOps & Cloud Engineer",
     description:
-      "Minimal, modern, and elegant portfolio for Dawwi with real-time project and work experience data from Strapi.",
+      "Cloud infrastructure, DevOps, software delivery, and intelligent systems built by Dawwi R.D.M.",
     images: ["/portfolio.png"]
   }
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {`
